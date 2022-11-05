@@ -1,0 +1,118 @@
+
+set ns [new Simulator]
+
+
+set myFile [open out.tr w]
+$ns trace-all $myFile
+
+
+set myNamFile [open out.nam w]
+$ns namtrace-all $myNamFile
+
+puts "Archivos creados..."
+
+$ns color 0 blue
+$ns color 1 red
+$ns color 2 green
+
+
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+
+
+$ns duplex-link $n0 $n2 1.5Mb 2ms DropTail
+$ns duplex-link $n1 $n2 1.5Mb 2ms DropTail
+$ns duplex-link $n2 $n3 3.0Mb 10ms DropTail
+
+
+$ns duplex-link-op $n0 $n2 orient right-up
+$ns duplex-link-op $n1 $n2 orient right-down
+$ns duplex-link-op $n2 $n3 orient right
+
+
+$ns duplex-link-op $n0 $n2 queuePos 0.5
+$ns duplex-link-op $n1 $n2 queuePos 0.5
+$ns duplex-link-op $n2 $n3 queuePos 0.5
+
+puts "Topologia creada..."
+
+
+set udp0 [new Agent/UDP]
+$ns attach-agent $n0 $udp0
+$udp0 set class_ 0
+
+set null0 [new Agent/Null]
+$ns attach-agent $n3 $null0
+ 
+$ns connect $udp0 $null0
+
+
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
+
+$ns at 0.2 "$cbr0 start"
+
+puts "El trafico CBR fluye por la conexion UDP entre los nodos 0 y 3" 
+puts "El trafico CBR comienza en el segundo 0.2"
+
+
+set udp1 [new Agent/UDP]
+$ns attach-agent $n3 $udp1
+$udp1 set class_ 1
+
+
+set null1 [new Agent/Null]
+$ns attach-agent $n1 $null1
+ 
+$ns connect $udp1 $null1
+
+
+set cbr1 [new Application/Traffic/CBR]
+$cbr1 attach-agent $udp1
+
+
+$ns at 0.5 "$cbr1 start"
+
+puts "El trafico CBR fluye por la conexion UDP entre los nodos 3 y 1" 
+puts "El trafico CBR comienza en el segundo 0.5"
+
+set tcp0 [new Agent/TCP]
+$ns attach-agent $n0 $tcp0
+$tcp0 set class_ 2
+
+set fin0 [new Agent/TCPSink]
+$ns attach-agent $n3 $fin0
+
+
+$ns connect $tcp0 $fin0
+
+
+set ftp [new Application/FTP]
+$ftp attach-agent $tcp0
+
+
+$ns at 1.0 "$ftp start"
+
+
+$ns at 2.0 "$ns detach-agent $n0 $tcp0 ; $ns detach-agent $n3 $fin0"
+
+puts "El trafico FTP fluye por la conexion TCP entre los nodos 0 y 3" 
+puts "El trafico FTP comienza en el segundo 1.0"
+puts "El trafico FTP termina en el segundo 2.0"
+
+$ns at 3.0 "finish"
+
+
+proc finish {} {
+    global ns myFile myNamFile
+    $ns flush-trace
+    close $myFile
+    close $myNamFile
+    puts "Simulacion terminada"
+    exec nam out.nam &
+    exit 0
+}
+
+$ns run

@@ -1,0 +1,5 @@
+mepco.com,172.16.16.200
+google.com,100.0.0.0
+lokesh.com,125.163.36.200
+
+lenovo.com,150.16.25.255

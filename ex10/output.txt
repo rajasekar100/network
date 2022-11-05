@@ -1,0 +1,320 @@
+/*******  Computer Network Lab- Ex 10  *****/
+
+//rootserver
+import java.io.*;
+import java.net.*;
+import java.util.*;
+public class rs
+{
+	public static void main(String args[]) throws Exception
+	{
+		Scanner in=new Scanner(System.in);
+		String x="";
+		int b,c=0;
+		try
+		{
+			ServerSocket skt1=new ServerSocket(1111);
+			Socket sk1=skt1.accept();
+			System.out.println("Connected");
+			DataInputStream odis1=new DataInputStream(sk1.getInputStream());
+			DataOutputStream odos1=new DataOutputStream(sk1.getOutputStream());
+
+			
+			FileReader fr1=new FileReader("root.txt");  
+		BufferedReader br1=new BufferedReader(fr1); 
+String line1;
+			int flag1=0,flag2=0;
+				String user=odis1.readUTF();
+				
+			
+				System.out.println(user);
+				
+				String temp="";
+				
+				while((line1=br1.readLine())!=null)  
+				{
+					String[] arr=line1.split(",",2);
+					if(arr[0].equals(user))
+					{
+						odos1.writeUTF(arr[1]);
+						temp=temp+line1;
+					}
+				}
+				Writer writer = new BufferedWriter(new OutputStreamWriter(
+        new FileOutputStream("local.txt", true), "UTF-8"));
+		writer.append("\n");
+		writer.append(temp);
+		writer.close();
+				
+
+fr1.close();  
+sk1.close();
+  
+
+  
+	
+			
+		}catch(EOFException exp){}
+		catch(Exception ep){}
+	}
+}
+
+
+//localserver
+
+
+
+import java.io.*;
+import java.net.*;
+import java.util.*;
+public class ls
+{
+	public static void main(String args[]) throws Exception
+	{
+		Scanner in=new Scanner(System.in);
+		String x="";
+		int b,c=0;
+		try
+		{
+			ServerSocket skt=new ServerSocket(2598);
+			Socket sk=skt.accept();
+			System.out.println("Connected");
+			DataInputStream odis=new DataInputStream(sk.getInputStream());
+			DataOutputStream odos=new DataOutputStream(sk.getOutputStream());
+			
+			String ipv="";
+			FileReader fr=new FileReader("local.txt");  
+		BufferedReader br1=new BufferedReader(fr); 
+		StringBuffer sb=new StringBuffer(); 
+
+String line1;
+			int flag1=0,flag2=0,flag=0;
+				String user=odis.readUTF();
+						
+				System.out.println(user);
+
+				
+				while((line1=br1.readLine())!=null)  
+				{
+					String[] arr=line1.split(",",2);
+					if(arr[0].equals(user))
+					{
+						flag=1;
+						ipv = arr[1];
+					}
+				}
+				if(flag==0)
+				{
+					odos.writeUTF("Not found in local server..");
+				}
+				else
+				{
+					odos.writeUTF(ipv);
+				}
+
+
+
+fr.close();  
+sk.close();
+  
+
+  
+	
+			
+		}catch(EOFException exp){}
+		catch(Exception ep){}
+	}
+}
+
+//client
+
+
+//client
+
+//java tcp cli
+import java.io.*;
+import java.util.*;
+import java.net.*;
+public class c
+{
+	public static void main(String args[]) throws Exception
+	{
+		Scanner in=new Scanner(System.in);
+		String x;
+		try
+		{
+			
+			int i,j;
+		Socket skt=new Socket("localhost",2598);
+		DataOutputStream odos=new DataOutputStream(skt.getOutputStream());
+		DataInputStream odis=new DataInputStream(skt.getInputStream());
+
+		BufferedReader obr=new BufferedReader(new InputStreamReader(System.in));
+		System.out.println("--------------------------------------------------------\n");
+					
+		System.out.println("***Welcome to SP locker*** ");
+		System.out.println("--------------------------------------------------------\n");
+					
+		System.out.print("enter Website Name :  ");
+		String user = in.next();
+		System.out.println();
+		System.out.println("--------------------------------------------------------\n");
+	
+		odos.writeUTF(user);
+		
+	
+		System.out.println("connecting to server..");
+			  String ans=odis.readUTF();
+			  System.out.println("\n--------------------------------------------------------\n");
+			  System.out.println("ipV4 (Local Server) : "+ans);
+System.out.println("--------------------------------------------------------\n");
+			  if(ans.equals("Not found in local server.."))
+			  {
+			  		
+			  	try{
+					  System.out.println("Searching for in Root Server!! ");
+			  		
+			  		Socket skt1=new Socket("localhost",1111);
+		DataOutputStream odos1=new DataOutputStream(skt1.getOutputStream());
+		DataInputStream odis1=new DataInputStream(skt1.getInputStream());
+		skt.close();
+		BufferedReader obr1=new BufferedReader(new InputStreamReader(System.in));
+
+		odos1.writeUTF(user);
+		
+		 String ans1=odis1.readUTF();
+		 System.out.println("connecting to server..");
+			   System.out.println("\n--------------------------------------------------------\n");
+			  System.out.println("ipV4 (Root Server) : "+ans1);
+System.out.println("--------------------------------------------------------\n");
+
+System.out.println("--------------------------------------------------------\n");
+System.out.println("ipv4 in Root server gets copied to Local server..");
+System.out.println("Now "+user+" will be available in local server..");
+System.out.println("--------------------------------------------------------\n");
+		skt1.close();
+			  	}
+			  	catch(ConnectException ex)
+			  	{
+			  		System.out.println("error in root server");
+
+			  	}
+			  }
+	
+			
+	else
+	{	
+		skt.close();
+	}
+	
+	}
+	catch(ConnectException ex)
+	{
+		System.out.println("Server Not Avaliable 404 Error Found");
+	}
+
+	}
+}
+
+
+//root.txt
+
+mepco.com,172.16.16.200
+google.com,100.0.0.0
+lenovo.com,150.16.25.255
+lokesh.com,125.163.36.200
+
+
+//local.txt
+
+mepco.com,172.16.16.200
+google.com,100.0.0.0
+lokesh.com,125.163.36.200
+
+
+//output
+
+//root server
+
+D:\COLLEGE\sem5\computer network\ex10>java rs
+Connected
+lenovo.com
+
+D:\COLLEGE\sem5\computer network\ex10>
+//local server
+
+D:\COLLEGE\sem5\computer network\ex10>java ls
+Connected
+google.com
+
+D:\COLLEGE\sem5\computer network\ex10>java ls
+Connected
+lenovo.com
+
+D:\COLLEGE\sem5\computer network\ex10>
+
+//client
+
+
+D:\COLLEGE\sem5\computer network\ex10>java c
+--------------------------------------------------------
+
+***Welcome to SP locker***
+--------------------------------------------------------
+
+enter Website Name :  google.com
+
+--------------------------------------------------------
+
+connecting to server..
+
+--------------------------------------------------------
+
+ipV4 (Local Server) : 100.0.0.0
+--------------------------------------------------------
+
+
+D:\COLLEGE\sem5\computer network\ex10>java c
+--------------------------------------------------------
+
+***Welcome to SP locker***
+--------------------------------------------------------
+
+enter Website Name :  lenovo.com
+
+--------------------------------------------------------
+
+connecting to server..
+
+--------------------------------------------------------
+
+ipV4 (Local Server) : Not found in local server..
+--------------------------------------------------------
+
+Searching for in Root Server!!
+connecting to server..
+
+--------------------------------------------------------
+
+ipV4 (Root Server) : 150.16.25.255
+--------------------------------------------------------
+
+--------------------------------------------------------
+
+ipv4 in Root server gets copied to Local server..
+Now lenovo.com will be available in local server..
+--------------------------------------------------------
+
+
+D:\COLLEGE\sem5\computer network\ex10>
+
+
+//updated local.txt
+
+mepco.com,172.16.16.200
+google.com,100.0.0.0
+lokesh.com,125.163.36.200
+lenovo.com,150.16.25.255
+
+
+
